@@ -1,0 +1,55 @@
+# Nota: i valori IMAGE_TAG e APP_VERSION vengono
+# sostituiti dalla pipeline Jenkins con sed o envsubst
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: prod
+  labels:
+    app: myapp
+    environment: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0      # Zero-downtime: mai Pod non disponibili
+  template:
+    metadata:
+      labels:
+        app: myapp
+        version: IMAGE_TAG    # Sostituito da Jenkins
+    spec:
+      containers:
+      - name: myapp
+        image: REGISTRY/myapp:IMAGE_TAG  # Sostituito da Jenkins
+        ports:
+        - containerPort: 8080
+        env:
+        - name: APP_ENV
+          value: "test"
+        - name: APP_VERSION
+          value: IMAGE_TAG    # Sostituito da Jenkins
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5

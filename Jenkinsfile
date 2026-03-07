@@ -29,8 +29,8 @@ spec:
 }
 
     environment {
-        REGISTRY     = 'registry.example.com'
-        IMAGE_NAME   = 'myapp'
+        REGISTRY     = 'docker.io'
+        IMAGE_NAME   = 'zecko8/myapp'
         IMAGE_TAG    = sh(script: 'git rev-parse --short=8 HEAD', returnStdout: true).trim()
         FULL_IMAGE   = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
         REGISTRY_CREDS = credentials('registry-credentials')
@@ -69,7 +69,7 @@ spec:
                 container('docker') {
                     sh '''
                         echo "=== Build immagine ${FULL_IMAGE} ==="
-                        docker build \
+                        docker -H tcp://localhost:2375 build \
                             --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
                             --build-arg VERSION=${IMAGE_TAG} \
                             -t ${FULL_IMAGE} .
@@ -86,7 +86,7 @@ spec:
                 container('docker') {
                     sh '''
                         echo "=== Esecuzione test unitari ==="
-                        docker run --rm ${FULL_IMAGE} python -m pytest tests/ -v || true
+                        docker -H tcp://localhost:2375 run --rm ${FULL_IMAGE} python -m pytest tests/ -v || true
                     '''
                 }
             }
@@ -103,10 +103,10 @@ spec:
                     sh '''
                         echo "=== Push immagine nel registry ==="
                         echo ${REGISTRY_CREDS_PSW} | \
-                            docker login ${REGISTRY} -u ${REGISTRY_CREDS_USR} --password-stdin
-                        docker push ${FULL_IMAGE}
-                        docker tag ${FULL_IMAGE} ${REGISTRY}/${IMAGE_NAME}:latest
-                        docker push ${REGISTRY}/${IMAGE_NAME}:latest
+                            docker -H tcp://localhost:2375 login ${REGISTRY} -u ${REGISTRY_CREDS_USR} --password-stdin
+                        docker -H tcp://localhost:2375 push ${FULL_IMAGE}
+                        docker -H tcp://localhost:2375 tag ${FULL_IMAGE} ${IMAGE_NAME}:latest
+                        docker -H tcp://localhost:2375 push ${IMAGE_NAME}:latest
                     '''
                 }
             }

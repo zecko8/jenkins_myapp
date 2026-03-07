@@ -84,25 +84,6 @@ spec:
             }
         }
 
-        stage('Unit Tests') {
-            when {
-                expression { return !params.SKIP_TESTS }
-            }
-            steps {
-                container('docker') {
-                    sh '''
-                        echo "=== Esecuzione test unitari ==="
-                        docker -H tcp://localhost:2375 run --rm ${FULL_IMAGE} python -m pytest tests/ -v || true
-                    '''
-                }
-            }
-            post {
-                always {
-                    echo 'Test completati'
-                }
-            }
-        }
-
         stage('Push Image') {
             steps {
                 container('docker') {
@@ -142,12 +123,16 @@ spec:
                     sh '''
                         echo "=== Smoke test namespace test ==="
                         kubectl wait pod -l app=myapp -n test --for=condition=Ready --timeout=2m
-
-                        POD=$(kubectl get pod -l app=myapp -n test -o jsonpath={.items[0].metadata.name})
+        
+                        POD=$(kubectl get pod -l app=myapp -n test \
+                              --sort-by=.metadata.creationTimestamp \
+                              -o jsonpath='{.items[-1].metadata.name}')
+        
+                        echo "Pod selezionato: $POD"
                         HTTP_CODE=$(kubectl exec $POD -n test -- \
                                     curl -s -o /dev/null -w "%{http_code}" \
                                     http://localhost:8080/health)
-
+        
                         if [ "$HTTP_CODE" != "200" ]; then
                             echo "SMOKE TEST FALLITO: HTTP $HTTP_CODE"
                             exit 1

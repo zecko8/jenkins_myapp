@@ -159,12 +159,6 @@ spec:
         }
 
         stage('Approvazione Deploy PROD') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
             steps {
                 echo "Deploy in TEST completato. In attesa di approvazione per PROD..."
                 timeout(time: 30, unit: 'MINUTES') {

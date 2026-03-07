@@ -68,6 +68,12 @@ spec:
             steps {
                 container('docker') {
                     sh '''
+                        echo "=== Attesa daemon Docker ==="
+                        until docker -H tcp://localhost:2375 info > /dev/null 2>&1; do
+                            echo "Docker non ancora pronto, attendo..."
+                            sleep 2
+                        done
+                        echo "Docker pronto"
                         echo "=== Build immagine ${FULL_IMAGE} ==="
                         docker -H tcp://localhost:2375 build \
                             --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \

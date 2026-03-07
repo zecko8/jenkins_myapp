@@ -174,12 +174,6 @@ spec:
         }
 
         stage('Deploy in PROD') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
             steps {
                 container('kubectl') {
                     sh '''
@@ -202,9 +196,6 @@ spec:
         }
 
         stage('Verifica PROD') {
-            when {
-                anyOf { branch 'main'; branch 'master' }
-            }
             steps {
                 container('kubectl') {
                     sh '''

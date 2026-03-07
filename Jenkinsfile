@@ -3,14 +3,11 @@
  
 pipeline {
 
-    agent {
-        kubernetes {
-            yaml '''
+agent {
+    kubernetes {
+        yaml '''
 apiVersion: v1
 kind: Pod
-metadata:
-  labels:
-    jenkins: agent
 spec:
   serviceAccountName: jenkins
   containers:
@@ -18,20 +15,18 @@ spec:
     image: docker:24-dind
     securityContext:
       privileged: true
-    volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
   - name: kubectl
-    image: bitnami/kubectl:1.29
+    image: alpine/k8s:1.29.2
     command: ["cat"]
     tty: true
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
-            '''
-        }
+        '''
     }
+}
 
     environment {
         REGISTRY     = 'registry.example.com'

@@ -12,6 +12,7 @@ def index():
     <html><body style="font-family:sans-serif;text-align:center;padding:50px">
     <h1>MyApp - Ambiente: {APP_ENV}</h1>
     <h2>Versione: {APP_VERSION}</h2>
+    <h2>CIAO A TUTTI ECCO LA MODIFICA </h2>
     <p>Pod: {os.environ.get('HOSTNAME','unknown')}</p>
     </body></html>
     '''
